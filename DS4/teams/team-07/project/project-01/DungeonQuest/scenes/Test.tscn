@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://siv5yol466ra"]
+
+[ext_resource type="Script" uid="uid://yukd44j3wa8b" path="res://scripts/test.gd" id="1_w8un3"]
+[ext_resource type="PackedScene" uid="uid://bxooy2jnmyd4f" path="res://scenes/rooms/ExitRoom.tscn" id="2_0d6la"]
+
+[node name="Test" type="Node2D" unique_id=434728026]
+script = ExtResource("1_w8un3")
+
+[node name="ExitRoom" parent="." unique_id=85950990 instance=ExtResource("2_0d6la")]

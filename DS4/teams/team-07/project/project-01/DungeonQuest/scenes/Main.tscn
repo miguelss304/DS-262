@@ -126,51 +126,45 @@ collision_mask = 15
 [node name="Room1" type="Node2D" parent="Rooms" unique_id=1004776831]
 
 [node name="Door_1-2" parent="Rooms/Room1" unique_id=335903968 instance=ExtResource("3_rarhs")]
-position = Vector2(424, 113)
+position = Vector2(424, 129)
 collision_layer = 4
-is_exit = null
 from_room = 1
 to_room = 2
 
 [node name="Room2" type="Node2D" parent="Rooms" unique_id=1228979558]
 
 [node name="Door_2-1" parent="Rooms/Room2" unique_id=1957413421 instance=ExtResource("3_rarhs")]
-position = Vector2(424, 16)
+position = Vector2(424, 32)
 collision_layer = 4
-is_exit = null
 from_room = 2
 to_room = 1
 view = 1
 
 [node name="Door_2-4" parent="Rooms/Room2" unique_id=306250657 instance=ExtResource("3_rarhs")]
-position = Vector2(384, -11)
+position = Vector2(384, 3)
 collision_layer = 4
-is_exit = null
 from_room = 2
 to_room = 4
 view = 2
 
 [node name="Door_2-3" parent="Rooms/Room2" unique_id=19898427 instance=ExtResource("3_rarhs")]
-position = Vector2(424, -46)
+position = Vector2(424, -30)
 collision_layer = 4
-is_exit = null
 from_room = 2
 to_room = 3
 
 [node name="Room3" type="Node2D" parent="Rooms" unique_id=215546605]
 
 [node name="Door_3-2" parent="Rooms/Room3" unique_id=38835956 instance=ExtResource("3_rarhs")]
-position = Vector2(424, -144)
+position = Vector2(424, -128)
 collision_layer = 4
-is_exit = null
 from_room = 3
 to_room = 2
 view = 1
 
 [node name="Door_3-5" parent="Rooms/Room3" unique_id=1895925758 instance=ExtResource("3_rarhs")]
-position = Vector2(384, -171)
+position = Vector2(384, -157)
 collision_layer = 4
-is_exit = null
 from_room = 3
 to_room = 5
 view = 2
@@ -178,50 +172,44 @@ view = 2
 [node name="Room4" type="Node2D" parent="Rooms" unique_id=24867346]
 
 [node name="Door_4-6" parent="Rooms/Room4" unique_id=1162924963 instance=ExtResource("3_rarhs")]
-position = Vector2(128, -11)
+position = Vector2(128, 3)
 collision_layer = 4
-is_exit = null
 from_room = 4
 to_room = 6
 view = 2
 
 [node name="Door_4-2" parent="Rooms/Room4" unique_id=181233727 instance=ExtResource("3_rarhs")]
-position = Vector2(208, -11)
+position = Vector2(208, 3)
 collision_layer = 4
-is_exit = null
 from_room = 4
 to_room = 2
 view = 3
 
 [node name="Door_4-5" parent="Rooms/Room4" unique_id=635965073 instance=ExtResource("3_rarhs")]
-position = Vector2(168, -47)
+position = Vector2(168, -30)
 collision_layer = 4
-is_exit = null
 from_room = 4
 to_room = 5
 
 [node name="Room5" type="Node2D" parent="Rooms" unique_id=817537696]
 
 [node name="Door_5-4" parent="Rooms/Room5" unique_id=1860184853 instance=ExtResource("3_rarhs")]
-position = Vector2(168, -144)
+position = Vector2(168, -128)
 collision_layer = 4
-is_exit = null
 from_room = 5
 to_room = 4
 view = 1
 
 [node name="Door_5-7" parent="Rooms/Room5" unique_id=1865556170 instance=ExtResource("3_rarhs")]
-position = Vector2(128, -172)
+position = Vector2(128, -157)
 collision_layer = 4
-is_exit = null
 from_room = 5
 to_room = 7
 view = 2
 
 [node name="Door_5-3" parent="Rooms/Room5" unique_id=2029878345 instance=ExtResource("3_rarhs")]
-position = Vector2(208, -172)
+position = Vector2(208, -157)
 collision_layer = 4
-is_exit = null
 from_room = 5
 to_room = 3
 view = 3
@@ -229,68 +217,68 @@ view = 3
 [node name="Room6" type="Node2D" parent="Rooms" unique_id=1712142455]
 
 [node name="Door_6-4" parent="Rooms/Room6" unique_id=1274665768 instance=ExtResource("3_rarhs")]
-position = Vector2(-64, -12)
+position = Vector2(-64, 3)
 collision_layer = 4
-is_exit = null
 from_room = 6
 to_room = 4
 view = 3
 
 [node name="Door_6-7" parent="Rooms/Room6" unique_id=1612886525 instance=ExtResource("3_rarhs")]
-position = Vector2(-104, -47)
+position = Vector2(-104, -30)
 collision_layer = 4
-is_exit = null
 from_room = 6
 to_room = 7
 
 [node name="Room7" type="Node2D" parent="Rooms" unique_id=450555632]
 
 [node name="Door_7-6" parent="Rooms/Room7" unique_id=170861430 instance=ExtResource("3_rarhs")]
-position = Vector2(-104, -144)
+position = Vector2(-104, -128)
 collision_layer = 4
-is_exit = null
 from_room = 7
 to_room = 6
 view = 1
 
 [node name="Door_7-5" parent="Rooms/Room7" unique_id=1861447003 instance=ExtResource("3_rarhs")]
-position = Vector2(-64, -172)
+position = Vector2(-64, -157)
 collision_layer = 4
-is_exit = null
 from_room = 7
 to_room = 5
 view = 3
 
 [node name="Door_7-8" parent="Rooms/Room7" unique_id=1208092811 instance=ExtResource("3_rarhs")]
-position = Vector2(-104, -207)
+position = Vector2(-104, -190)
 collision_layer = 4
-is_exit = null
 from_room = 7
 to_room = 8
 
 [node name="Room8" type="Node2D" parent="Rooms" unique_id=1571698222]
 
 [node name="Door_8-7" parent="Rooms/Room8" unique_id=1941986331 instance=ExtResource("3_rarhs")]
-position = Vector2(-104, -304)
+position = Vector2(-104, -288)
 collision_layer = 4
-is_exit = null
 from_room = 8
 to_room = 7
 view = 1
 
 [node name="Door_8-0" parent="Rooms/Room8" unique_id=1859304148 instance=ExtResource("3_rarhs")]
-position = Vector2(-104, -448)
+position = Vector2(-104, -430)
 collision_layer = 4
 is_exit = true
 from_room = 8
 
 [node name="FadeLayer" type="CanvasLayer" parent="." unique_id=26184723]
+visible = false
 
 [node name="Fade" type="ColorRect" parent="FadeLayer" unique_id=27067250]
+visible = false
 modulate = Color(1, 1, 1, 0)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 96.0
+offset_top = -488.0
+offset_right = 96.0
+offset_bottom = -488.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

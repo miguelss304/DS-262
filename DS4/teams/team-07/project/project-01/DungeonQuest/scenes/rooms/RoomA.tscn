@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://ck1eumcurg64a"]
+
+[ext_resource type="Script" uid="uid://vxwjvw2xhi26" path="res://scripts/room.gd" id="1_10ono"]
+[ext_resource type="PackedScene" uid="uid://c47e65gmaqpxm" path="res://scenes/objects/DoorSlot.tscn" id="2_41t3a"]
+
+[node name="RoomA" type="Node2D" unique_id=1726810352]
+script = ExtResource("1_10ono")
+
+[node name="DoorSlot" parent="." unique_id=1664934376 instance=ExtResource("2_41t3a")]

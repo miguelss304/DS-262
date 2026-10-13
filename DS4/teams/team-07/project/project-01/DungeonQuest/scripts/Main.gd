@@ -6,6 +6,11 @@ var transitioning: bool = false
 var doors: Dictionary = {}
 
 func _ready() -> void:
+	
+	graph.generate(8, 2, 12345)
+	print(graph.adjacency)
+	print("Ruta: ", graph.bfs_path(1, 8))
+	
 	$FadeLayer/Fade.modulate.a = 1.0
 	
 	var t2 := create_tween()
