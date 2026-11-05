@@ -74,3 +74,4 @@ help={
 
 textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
+environment/defaults/default_clear_color=Color(0.039215688, 0, 0.050980393, 1)

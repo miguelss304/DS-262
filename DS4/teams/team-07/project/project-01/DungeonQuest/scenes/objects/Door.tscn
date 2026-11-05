@@ -51,7 +51,7 @@ animations = [{
 "texture": SubResource("AtlasTexture_qxrry")
 }],
 "loop": true,
-"name": &"rigth",
+"name": &"right",
 "speed": 5.0
 }]
 
@@ -202,7 +202,7 @@ walk_distance_back = 8.0
 modulate = Color(1, 1, 1, 0)
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_02sv7")
-animation = &"front"
+animation = &"right"
 
 [node name="DoorBack" type="AnimatedSprite2D" parent="." unique_id=860034957]
 position = Vector2(0, -16)

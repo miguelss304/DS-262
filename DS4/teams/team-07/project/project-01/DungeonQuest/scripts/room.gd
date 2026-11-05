@@ -7,3 +7,6 @@ func get_free_slots() -> Array:
 
 func slot_count() -> int:
 	return get_free_slots().size()
+
+func get_slot(index: int) -> Node:
+	return door_slots.get_child(index)
