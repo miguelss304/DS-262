@@ -2,7 +2,7 @@ extends CharacterBody2D
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite
 
-var speed = 50.0
+var speed = 75.0
 var last_direction = "down"
 var can_move: bool = true
 

@@ -1,10 +1,10 @@
-[gd_scene format=4 uid="uid://bxooy2jnmyd4f"]
+[gd_scene format=4 uid="uid://caaugeatuqu7y"]
 
 [ext_resource type="Script" uid="uid://vxwjvw2xhi26" path="res://scripts/room.gd" id="1_jbimd"]
 [ext_resource type="TileSet" uid="uid://8hu0lr6s6ww4" path="res://assets/sprites/tiles/tiles.tres" id="2_4k6de"]
 [ext_resource type="PackedScene" uid="uid://c47e65gmaqpxm" path="res://scenes/objects/DoorSlots.tscn" id="3_2queh"]
 
-[node name="ExitRoom" type="Node2D" unique_id=85950990]
+[node name="RoomB" type="Node2D" unique_id=85950990]
 script = ExtResource("1_jbimd")
 
 [node name="Foreground" type="TileMapLayer" parent="." unique_id=842149458]

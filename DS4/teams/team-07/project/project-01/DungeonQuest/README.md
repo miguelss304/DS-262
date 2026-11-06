@@ -1,24 +1,26 @@
 # Dungeon Quest
 
 ## Descripción
-Dungeon Quest es un prototipo 2D de exploración de un calabozo hecho con Godot 4. El jugador recorre ocho habitaciones conectadas por puertas hasta encontrar la salida. El mapa se modela como un grafo: cada habitación es un vértice y cada puerta compartida entre dos habitaciones es una arista.
+Dungeon Quest es un videojuego 2D de exploración de mazmorras hecho en **Godot 4.6**. El mapa se representa con un **grafo no dirigido y no ponderado**: cada sala es un vértice y cada puerta es el extremo de una arista. El grafo se **genera proceduralmente** en cada partida, y el jugador solo puede pasar de una sala a otra a través de las puertas que el grafo permite.
 
-## Qué incluye esta entrega
-- Menú de inicio con botones **Jugar** y **Salir**.
-- Ocho habitaciones (1 a 8) conectadas entre sí, más una puerta de salida en la habitación 8.
-- Personaje con movimiento en cuatro direcciones y animaciones de caminar y reposo.
-- Puertas que solo permiten pasar entre habitaciones adyacentes según el grafo; si una conexión no existe en el grafo, se rechaza y se imprime un aviso en la consola.
-- Transición entre habitaciones con fundido a negro, caminata del jugador por la puerta y cámara suavizada.
-- Ayuda basada en BFS: al pulsar **H**, la puerta que lleva al siguiente paso del camino más corto hacia la salida brilla durante un instante.
-- Pantalla de victoria al cruzar la puerta de salida, con opciones **Reintentar** y **Menú**.
+El proyecto tiene fines académicos (curso de Estructuras de Datos) y busca demostrar el uso de grafos, BFS y conjuntos disjuntos (Union-Find) dentro de un juego funcional.
+
+## Qué hace el juego
+- Genera un calabozo de 8 salas con una sala de entrada, una sala de salida y salas intermedias.
+- El jugador aparece en la sala de entrada y se mueve con las flechas del teclado.
+- Cada puerta lleva a otra sala: el jugador camina hacia el arco, la pantalla se oscurece y aparece en la puerta gemela de la sala destino.
+- Cada cruce se valida contra el grafo antes de permitirse.
+- Con la tecla de ayuda, la puerta que sigue la ruta más corta hacia la salida brilla (calculada con BFS).
+- Al cruzar la puerta de victoria de la sala de salida, aparece la pantalla de victoria.
+- Hay pantalla de inicio con las opciones **Jugar** y **Salir**.
 
 ## Requisitos
-- Godot 4.x (el proyecto fue creado con la versión 4.7 y el renderizador *Forward Plus*; se recomienda abrirlo con esa versión o una posterior).
-- No requiere complementos ni dependencias externas.
-- 
+- Godot 4.6 (usa `@export_tool_button`, disponible desde 4.4).
+- No requiere complementos ni recursos externos.
+
 ## Cómo ejecutar (macOS)
 
-Este proyecto incluye un script de Bash (`ejecutar.sh`) que automatiza por completo la configuración en macOS: descarga e instala **Godot 4.3** de forma automática (si no está instalado), configura los permisos de seguridad del sistema y abre el juego directamente.
+Este proyecto incluye un script de Bash (`ejecutar.sh`) que automatiza por completo la configuración en macOS: descarga e instala **Godot 4.6** de forma automática (si no está instalado), configura los permisos de seguridad del sistema y abre el juego directamente.
 
 ### Pasos para iniciar
 
@@ -39,63 +41,112 @@ Este proyecto incluye un script de Bash (`ejecutar.sh`) que automatiza por compl
 
 El script se encargará de validar tu entorno, solucionar el bloqueo de Gatekeeper de macOS si descarga el motor por primera vez, e iniciará el juego inmediatamente sin necesidad de configurar nada de forma manual.
 
+
+
 ## Cómo ejecutar
 1. Abre Godot.
 2. Selecciona **Importar** y elige el archivo `project.godot`.
-3. Abre el proyecto y espera a que Godot importe los recursos.
-4. Pulsa **F5** para ejecutarlo. La escena principal es `scenes/Start.tscn` (menú de inicio).
+3. Abre el proyecto.
+4. Pulsa **F5** para ejecutar.
 
 ## Controles
-| Acción | Tecla |
+| Acción | Control |
 |---|---|
-| Mover al personaje | `W` `A` `S` `D` o flechas |
-| Mostrar la puerta del camino más corto a la salida | `H` |
-| Cruzar una puerta | Caminar hacia ella |
+| Moverse | Flechas del teclado |
+| Pista hacia la salida (BFS) | Tecla asignada a la acción `help` |
+| Cruzar una puerta | Caminar hacia el arco |
 
-En los menús se usa el ratón.
+## Estructuras de datos y algoritmos
 
-## Mapa del calabozo
-Aristas definidas en `DungeonGraph.build_default()`:
+### Grafo (lista de adyacencia)
+Implementado en `scripts/DungeonGraph.gd` con un `Dictionary` que asocia cada sala con un `Array` de vecinas. `add_edge` inserta la conexión en ambos sentidos.
 
-| Habitación | Conectada con |
+| Operación | Complejidad |
 |---|---|
-| 1 (entrada) | 2 |
-| 2 | 1, 3, 4 |
-| 3 | 2, 5 |
-| 4 | 2, 5, 6 |
-| 5 | 3, 4, 7 |
-| 6 | 4, 7 |
-| 7 | 5, 6, 8 |
-| 8 | 7, salida |
+| Consultar vecinos | O(1) |
+| ¿Son vecinas `a` y `b`? | O(grado) |
+| Agregar arista | O(grado) |
 
-La salida es una puerta especial (`is_exit = true`) ubicada en la habitación 8. Desde la habitación 1, el camino más corto calculado por BFS es `1 → 2 → 3 → 5 → 7 → 8`, seguido de la puerta de salida.
+Se eligió lista de adyacencia sobre matriz porque el grafo es disperso (cada sala tiene como máximo 4 vecinas).
+
+### BFS (búsqueda en anchura)
+`bfs_path(inicio, meta)` devuelve la ruta con menos conexiones. Usa una cola, un diccionario de visitados y un diccionario de predecesores para reconstruir el camino. Complejidad **O(V + E)**. Se usa para la pista visual de la tecla de ayuda.
+
+### Union-Find (conjuntos disjuntos)
+`generate()` usa Union-Find con **compresión de caminos** para construir un árbol de expansión aleatorio entre las salas intermedias, lo que garantiza que todas las salas sean alcanzables. Después agrega aristas extra para crear ciclos y rutas alternativas.
+
+### Generación procedural
+1. Se crea un árbol de expansión aleatorio entre las salas intermedias (grado máximo 4).
+2. Se agregan aristas extra sin superar el grado máximo.
+3. La entrada (sala 1) se conecta a una sala intermedia y la salida (sala n) a la intermedia más lejana según BFS; ambas son hojas.
+4. Se usa una **semilla** (`RandomNumberGenerator`), que se imprime en consola: la misma semilla produce el mismo mapa.
+
+### Diccionario de puertas
+`Main.gd` guarda las puertas en un `Dictionary` indexado por el par `Vector2i(desde, hacia)`. Al cruzar, la puerta gemela se obtiene con `Vector2i(hacia, desde)`.
+
+## Cómo se construye el mapa
+- Cada sala es una plantilla (`EntryRoom`, `ExitRoom`, `RoomA`, `RoomB`) de 480 × 270 px con **10 posiciones posibles de puerta** (`Slot_0` a `Slot_9`) en los bordes.
+- Cada plantilla indica qué slots están deshabilitados según su forma (`Disabled Slots`).
+- Cada slot tiene una **vista** (frente, atrás, izquierda, derecha) según la pared donde está.
+- Para cada arista del grafo, el código instancia una puerta en cada sala. La puerta de llegada se coloca en la pared opuesta cuando es posible.
+- La sala de salida solo se conecta por un slot fijo y tiene otro slot fijo para la puerta de victoria (`to_room = 0`, que no forma parte del grafo).
+- Las salas se colocan separadas en una cuadrícula; no se conectan caminando, solo por las puertas.
 
 ## Estructura del proyecto
-- `project.godot`: configuración del proyecto, ventana de 480×270 escalada a 1280×720 y acciones de entrada.
-- `scenes/Start.tscn`: menú de inicio (escena principal).
-- `scenes/Main.tscn`: nivel con las habitaciones, las puertas, el jugador y la capa de fundido.
-- `scenes/player.tscn`: jugador.
-- `scenes/objects/Door.tscn`: puerta reutilizable (vistas frontal, trasera, izquierda y derecha, con brillo de ayuda).
-- `scenes/SceneController.tscn`: cargador que cambia de escena con fundido.
-- `scenes/Victory.tscn`: pantalla de victoria.
-- `scripts/DungeonGraph.gd`: grafo (lista de adyacencia) y búsqueda BFS.
-- `scripts/Main.gd`: coordinación del nivel, validación de puertas, transiciones, ayuda y victoria.
-- `scripts/door.gd`: lógica de la puerta, señal `door_crossed` y posiciones de llegada.
-- `scripts/player.gd`: movimiento y animaciones.
-- `scripts/scene_controller.gd`, `scripts/start.gd`, `scripts/victory.gd`: cambio de escena y menús.
-- `assets/`: fuentes y sprites (ver `assets/README.md`).
+```text
+DungeonQuest/
+├── project.godot
+├── README.md
+├── assets/
+│   ├── README.md
+│   └── sprites/
+├── scenes/
+│   ├── Start.tscn          # pantalla de inicio
+│   ├── Main.tscn           # juego
+│   ├── Victory.tscn        # pantalla de victoria
+│   ├── player.tscn
+│   ├── objects/
+│   │   ├── Door.tscn
+│   │   └── DoorSlots.tscn
+│   └── rooms/
+│       ├── EntryRoom.tscn
+│       ├── ExitRoom.tscn
+│       ├── RoomA.tscn
+│       └── RoomB.tscn
+└── scripts/
+    ├── Main.gd             # generación del mapa, cruce de puertas, fade, pista
+    ├── DungeonGraph.gd     # grafo, BFS, generación con Union-Find
+    ├── door.gd             # puerta: vistas, colisiones, brillo
+    ├── door_slot.gd        # slot individual (vista editable en el editor)
+    ├── door_slots.gd       # contenedor de slots y slots deshabilitados
+    ├── room.gd             # interfaz de una sala
+    ├── player.gd
+    ├── start.gd
+    └── victory.gd
+```
 
-## Estructura de datos y algoritmo
-El calabozo se representa mediante un grafo no dirigido y no ponderado, implementado como diccionario de listas de adyacencia en `DungeonGraph.gd`:
-- `add_edge(a, b)` registra la conexión en ambos sentidos y evita duplicados.
-- `are_neighbors(a, b)` valida si el movimiento entre dos habitaciones está permitido.
-- `bfs_path(start, goal)` recorre el grafo por niveles con una cola, guarda el padre de cada vértice visitado y reconstruye la ruta desde la meta hacia atrás. Devuelve el camino con menos conexiones o un arreglo vacío si no hay camino.
+## Estado actual
+**Implementado**
+- Movimiento del jugador con animaciones y colisiones.
+- Cámara que sigue al jugador y se limita a la sala actual.
+- Puertas con 4 vistas, colisiones por vista y brillo de pista.
+- Transición al cruzar: paseo hacia el arco, fundido a negro y fundido de entrada.
+- Grafo, BFS y generación procedural con semilla.
+- Validación de cada cruce contra el grafo.
+- Pantallas de inicio y victoria.
 
-Cada conexión se materializa en el nivel como dos puertas gemelas (por ejemplo `Door_2-3` y `Door_3-2`). Al cruzar una, `Main.gd` comprueba el grafo, busca la puerta gemela y coloca al jugador en su punto de llegada.
+**Pendiente**
+- Más plantillas de sala para dar variedad.
+- Elegir la salida como la hoja más lejana de la entrada.
+- Mostrar la ruta completa en pantalla.
+- Pulido visual de los menús.
 
-## Estado y limitaciones conocidas
-- No incluye combate, inventario, enemigos ni generación aleatoria de niveles.
-- El grafo está definido en código (`build_default()`) y debe mantenerse consistente con las puertas de `Main.tscn`.
-- `scripts/GraphView.gd` está vacío: era el dibujo del mapa de la primera versión y ya no se usa.
-- La ayuda con **H** siempre calcula la ruta hacia la habitación 8, no hacia la puerta de salida como tal.
-- La ruta BFS también se imprime en la consola al iniciar el nivel (`Ruta BFS: ...`).
+## Ideas a futuro
+- Pila para una tecla de "volver atrás" (historial de salas).
+- Implementar la cola de BFS con un arreglo circular propio.
+- Tabla hash propia para los datos de cada sala.
+- Puertas con costo y búsqueda de ruta ponderada (Dijkstra).
+- Árbol de habilidades: ver `IDEA_ARBOL_HABILIDADES.md` (requiere añadir combate, que hoy no existe).
+
+## Alcance
+Por ahora no incluye combate, inventario ni enemigos. El objetivo es demostrar que el movimiento entre salas está restringido por un grafo, que BFS calcula la ruta más corta y que Union-Find permite generar mapas siempre conexos.
