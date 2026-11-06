@@ -6,19 +6,22 @@ const EXIT_SCENE := preload("res://scenes/rooms/ExitRoom.tscn")
 const NORMAL_SCENES := [
 	preload("res://scenes/rooms/RoomA.tscn"),
 	preload("res://scenes/rooms/RoomB.tscn"),
+	preload("res://scenes/rooms/RoomC.tscn"),
 ]
-const EXIT_LINK_SLOT := 6   # única entrada a la sala de salida
+
+const EXIT_LINK_SLOT := 6   # única puerta de enlace de la sala de salida
 const EXIT_WIN_SLOT := 1    # puerta de victoria
 
 const ROOM_COUNT := 8
 const EXTRA_EDGES := 2
-const ROOM_STEP := Vector2(700, 450)
-const WORLD_ORIGIN := Vector2(4000, 0)
 const ROOM_SIZE := Vector2(480, 270)
+const ROOM_STEP := Vector2(700, 450)   # tamaño de sala + margen de vacío
+const WORLD_ORIGIN := Vector2(4000, 0)
 
-var rooms: Dictionary = {}
 var graph := DungeonGraph.new()
-var doors: Dictionary = {}
+var doors: Dictionary = {}       # Vector2i(from, to) -> puerta
+var rooms: Dictionary = {}       # id -> sala
+var normal_views: Array = []     # por plantilla normal: vistas (paredes) que ofrece
 var current_room: int = 1
 var exit_room: int = ROOM_COUNT
 var transitioning: bool = false
@@ -29,13 +32,28 @@ var fade: ColorRect
 func _ready() -> void:
 	_create_fade()
 
+	for scene in NORMAL_SCENES:
+		normal_views.append(_scene_views(scene))
+
 	rng.randomize()
 	var seed_value: int = rng.randi()
-	print("Semilla: ", seed_value)
-	rng.seed = seed_value
+	var entry_view: int = _entry_link_view()
+	var exit_view: int = _exit_link_view()
 
-	graph.generate(ROOM_COUNT, EXTRA_EDGES, seed_value)
+	var ok := false
+	for attempt in 30:
+		if graph.generate_grid(ROOM_COUNT, EXTRA_EDGES, seed_value + attempt, entry_view, exit_view):
+			seed_value += attempt
+			ok = true
+			break
+	if not ok:
+		push_error("No se pudo generar el mapa")
+		return
+
+	rng.seed = seed_value
+	print("Semilla: ", seed_value)
 	print("Grafo: ", graph.adjacency)
+	print("Celdas: ", graph.cells)
 	print("Ruta BFS: ", graph.bfs_path(1, exit_room))
 
 	_build_world()
@@ -57,6 +75,53 @@ func _create_fade() -> void:
 	fade.modulate.a = 0.0
 	layer.add_child(fade)
 
+# ---------- Lectura de plantillas ----------
+
+# Vistas (paredes) de los slots libres de una plantilla, sin repetir
+func _scene_views(scene: PackedScene) -> Array:
+	var inst = scene.instantiate()
+	var views: Array = []
+	for s in inst.get_node("DoorSlots").get_free_slots():
+		if not views.has(s.view):
+			views.append(s.view)
+	inst.free()
+	return views
+
+# Pared de la única puerta de enlace de la entrada
+func _entry_link_view() -> int:
+	var inst = ENTRY_SCENE.instantiate()
+	var slots: Array = inst.get_node("DoorSlots").get_free_slots()
+	var v: int = 0
+	if not slots.is_empty():
+		v = slots[0].view
+	inst.free()
+	return v
+
+# Pared de la puerta de enlace de la salida
+func _exit_link_view() -> int:
+	var inst = EXIT_SCENE.instantiate()
+	var v: int = inst.get_node("DoorSlots").get_child(EXIT_LINK_SLOT).view
+	inst.free()
+	return v
+
+# Plantilla normal que ofrece todas las paredes que esa sala necesita
+func _pick_template(id: int) -> PackedScene:
+	var needed: Array = []
+	for nb in graph.get_neighbors(id):
+		needed.append(graph.view_to(id, nb))
+	var valid: Array = []
+	for i in NORMAL_SCENES.size():
+		var fits := true
+		for v in needed:
+			if not normal_views[i].has(v):
+				fits = false
+		if fits:
+			valid.append(NORMAL_SCENES[i])
+	if valid.is_empty():
+		push_error("Ninguna plantilla cubre las paredes de la sala %d" % id)
+		return NORMAL_SCENES[0]
+	return valid[rng.randi() % valid.size()]
+
 # ---------- Construcción del mapa ----------
 
 func _build_world() -> void:
@@ -65,7 +130,6 @@ func _build_world() -> void:
 	add_child(world)
 
 	var slots_by_room: Dictionary = {}
-	var cols: int = ceili(sqrt(float(ROOM_COUNT)))
 
 	for i in range(1, ROOM_COUNT + 1):
 		var scene: PackedScene
@@ -74,12 +138,10 @@ func _build_world() -> void:
 		elif i == ROOM_COUNT:
 			scene = EXIT_SCENE
 		else:
-			scene = NORMAL_SCENES[rng.randi() % NORMAL_SCENES.size()]
+			scene = _pick_template(i)
 		var room = scene.instantiate()
 		room.name = "Room%d" % i
-		var col: int = (i - 1) % cols
-		var row: int = floori(float(i - 1) / cols)
-		room.position = WORLD_ORIGIN + Vector2(col, row) * ROOM_STEP
+		room.position = WORLD_ORIGIN + Vector2(graph.cells[i]) * ROOM_STEP
 		world.add_child(room)
 		rooms[i] = room
 
@@ -87,44 +149,39 @@ func _build_world() -> void:
 		_shuffle(slots)
 		slots_by_room[i] = slots
 
+	# Una puerta en cada extremo de cada arista, en paredes opuestas
 	for a in graph.adjacency:
 		for b in graph.get_neighbors(a):
 			if a < b:
-				var slot_a
-				var slot_b
-				if b == exit_room:
-					# La sala de salida solo se conecta por su slot fijo
-					slot_b = rooms[b].get_slot(EXIT_LINK_SLOT)
-					slot_a = _take_slot(slots_by_room[a], slot_b.view ^ 1)
-				else:
-					slot_a = _take_slot(slots_by_room[a])
-					if slot_a != null:
-						slot_b = _take_slot(slots_by_room[b], slot_a.view ^ 1)
+				var v: int = graph.view_to(a, b)
+				var slot_a = _slot_for(a, v, slots_by_room)
+				var slot_b = _slot_for(b, v ^ 1, slots_by_room)
 				if slot_a == null or slot_b == null:
-					push_error("Sin slots libres para la arista %d-%d" % [a, b])
+					push_error("Sin slot en la pared correcta para la arista %d-%d" % [a, b])
 					continue
 				_make_door(a, b, slot_a)
 				_make_door(b, a, slot_b)
 
-	# Puerta de victoria en el slot fijo de la sala de salida
+	# Puerta de victoria (to_room = 0, no forma parte del grafo)
 	_make_door(exit_room, 0, rooms[exit_room].get_slot(EXIT_WIN_SLOT), true)
-	
-	
-func _take_slot(slots: Array, wanted_view: int = -1):
-	if slots.is_empty():
-		return null
-	if wanted_view >= 0:
-		for i in slots.size():
-			if slots[i].view == wanted_view:
-				return slots.pop_at(i)
-	return slots.pop_back()
+
+func _slot_for(room_id: int, view: int, slots_by_room: Dictionary):
+	if room_id == exit_room:
+		return rooms[room_id].get_slot(EXIT_LINK_SLOT)
+	return _take_slot(slots_by_room[room_id], view)
+
+func _take_slot(slots: Array, wanted_view: int):
+	for i in slots.size():
+		if slots[i].view == wanted_view:
+			return slots.pop_at(i)
+	return null
 
 func _make_door(from_id: int, to_id: int, slot: Node, is_exit: bool = false) -> void:
 	var door = DOOR_SCENE.instantiate()
 	door.from_room = from_id
 	door.to_room = to_id
 	door.is_exit = is_exit
-	door.view = slot.view
+	door.view = slot.view          # antes de add_child
 	slot.add_child(door)
 	door.name = "Door_%d_%d" % [from_id, to_id]
 	doors[Vector2i(from_id, to_id)] = door
@@ -146,6 +203,16 @@ func _place_player_at_start() -> void:
 	current_room = 1
 	_set_camera_limits(1)
 	$Player/Camera2D.reset_smoothing()
+
+# ---------- Cámara ----------
+
+func _set_camera_limits(room_id: int) -> void:
+	var room: Node2D = rooms[room_id]
+	var cam: Camera2D = $Player/Camera2D
+	cam.limit_left = int(room.position.x)
+	cam.limit_top = int(room.position.y)
+	cam.limit_right = int(room.position.x + ROOM_SIZE.x)
+	cam.limit_bottom = int(room.position.y + ROOM_SIZE.y)
 
 # ---------- Cruce de puertas ----------
 
@@ -244,13 +311,3 @@ func generar_ayuda_puertas() -> void:
 	for d in get_room_doors(current_room):
 		if d.to_room == next_room:
 			d.door_glow()
-			
-# ----------- Colision de camara --------------
-
-func _set_camera_limits(room_id: int) -> void:
-	var room: Node2D = world.get_node("Room%d" % room_id)
-	var cam: Camera2D = $Player/Camera2D
-	cam.limit_left = int(room.position.x)
-	cam.limit_top = int(room.position.y)
-	cam.limit_right = int(room.position.x + ROOM_SIZE.x)
-	cam.limit_bottom = int(room.position.y + ROOM_SIZE.y)
