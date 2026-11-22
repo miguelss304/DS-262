@@ -10,7 +10,7 @@ extends Node2D
 @onready var attack_button: Button = %AttackButton
 @onready var arrow: Polygon2D = %Arrow
 
-const COMBAT_SCALE := 4.945   
+const COMBAT_SCALE := 4.945
 
 var max_hp: int = 1
 var alive: bool = true
@@ -36,6 +36,7 @@ func setup(display_name: String, p_max_hp: int, hp: int, frames: SpriteFrames,
 	battle_effects = effects
 	sprite.sprite_frames = frames
 	_fit_sprite()
+	_sprite_scale = sprite.scale
 	sprite.modulate = Color.WHITE
 	hp_bar.max_value = max_hp
 	hp_bar.value = hp
@@ -45,10 +46,7 @@ func setup(display_name: String, p_max_hp: int, hp: int, frames: SpriteFrames,
 func _fit_sprite() -> void:
 	if sprite.sprite_frames == null:
 		return
-	var tex := sprite.sprite_frames.get_frame_texture("idle", 0)
-	if tex != null:
-		var s := COMBAT_SCALE * 16.0 / float(tex.get_width())
-		sprite.scale = Vector2(s, s)
+	sprite.scale = Vector2(COMBAT_SCALE, COMBAT_SCALE)
 		
 func update_hp(hp: int) -> void:
 	hp = maxi(hp, 0)
@@ -101,16 +99,12 @@ func _animate_hurt() -> void:
 
 # Embestida hacia el jugador (a la izquierda)
 func play_attack() -> void:
-	var has_attack := sprite.sprite_frames != null \
-			and sprite.sprite_frames.has_animation("attack")
-	if has_attack:
+	if sprite.sprite_frames != null and sprite.sprite_frames.has_animation("attack"):
 		sprite.play("attack")
 	else:
 		_play_idle()
 	var x0 := position.x
-	# El sheet se redujo a 16x16; compensa el remuestreo para conservar el tamaño visible.
-	var attack_scale := _sprite_scale * (2.0 if has_attack else 1.0)
-	sprite.scale = attack_scale
+	var attack_scale := _sprite_scale
 	var t := create_tween()
 	t.tween_property(self, "position:x", x0 - 30.0, 0.1).set_trans(Tween.TRANS_BACK)
 	t.parallel().tween_property(sprite, "scale", attack_scale * Vector2(1.45, 0.72), 0.1)
@@ -119,7 +113,8 @@ func play_attack() -> void:
 	t.tween_property(self, "position:x", x0, 0.16).set_trans(Tween.TRANS_ELASTIC)
 	t.parallel().tween_property(sprite, "scale", attack_scale, 0.16).set_trans(Tween.TRANS_ELASTIC)
 	await t.finished
-	sprite.scale = _sprite_scale
+	if sprite.animation == "attack" and sprite.is_playing():
+		await sprite.animation_finished
 	_play_idle()
 
 func play_death() -> void:
